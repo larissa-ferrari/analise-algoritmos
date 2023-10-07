@@ -111,7 +111,7 @@ int heapSort (int *arr, int x) {
     heap(arr, n, i);
   }
   for(int j = n-1; j > 0 j--){
-    int valorTemp = arr[j];
+    int valorTemp = arr[0];
     arr[0] = arr[j];
     arr[j] = Valortemp;
 
@@ -120,7 +120,7 @@ int heapSort (int *arr, int x) {
 
 }
 
-// part
+// particiona
 int particionaQS(int *arr, int menor, int maior){
   int pivo = arr[maior];
   int aux = menor - 1;
@@ -132,13 +132,19 @@ int particionaQS(int *arr, int menor, int maior){
       arr[i] = valorTemp;
     }
   }
-  int valorTemp = arr[aux];
+    int valorTemp = arr[aux];
   arr[aux] = arr[i];
   arr[i] = valorTemp;
+  return (aux+1);
 }
-int quickSort (int *arr, int menor, int maior {
 
-    
+
+int quickSort (int *arr, int menor, int maior {
+    if(menor < maior){
+      int pivo = particionaQS(arr, menor, maior);
+      quickSort(arr, menor, pivo-1);
+      quickSort(arr, pivo+1, maior);
+    }
 }
 
 tor ( int tipoPreenchimento ) {
