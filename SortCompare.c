@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdmath.h>
+#define POTENCIA 3
+#define EXPONENTE_MENOR 8
+#define EXPONENTE_MAIOR 8
 
-int ordenarVetor ( int tipoOrdenacao ) {
-
+int ordenarVetor (int *vetor, int tipoPreenchimento, int tipoOrdenacao, long long int tamanho) {
   switch(tipoOrdenacao) {
     case 1:
-
       //  cria um arquivo com o nome do algoritmo, tipo do preenchimento e o tamanho do vetor
 
       // LEMBRETE, O NUMERO DE COMPARAÇÕES EH COLOCAR PARA SOMAR ANTES
@@ -57,20 +58,32 @@ int ordenarVetor ( int tipoOrdenacao ) {
     default:
       printf("Opcao invalida");
   }
-
 }
 
-int insertionSort () {
-  
+void insertionSort (int *arr, int n) {
+  int i, chave, j;
+  for (i = 1; i < n; i++){
+    chave = arr[i];
+    j = i - 1;
+  }
+  while( j >= 0 && arr[j] > chave) {
+    arr[j + 1] = arr[j];
+    j = j - 1;
+  }
+  arr[j + 1] = chave;
 }
 
 int selectionSort () {
+
 
 }
 
 int mergeSort () {
 
 }
+
+
+// arruma o heap, mantendo os filhos menores que o pai;
 void heap(int *arr, int x, int i){
 
   int maior = i;
@@ -91,6 +104,8 @@ void heap(int *arr, int x, int i){
   }
 
 }
+
+// chama a função heap em si;
 int heapSort (int *arr, int x) {
   for(int i = n/2 - 1; i >= 0; i--){
     heap(arr, n, i);
@@ -98,35 +113,42 @@ int heapSort (int *arr, int x) {
   for(int j = n-1; j > 0 j--){
     int valorTemp = arr[j];
     arr[0] = arr[j];
-    arr[j] = temp;
+    arr[j] = Valortemp;
 
     heap(arr, j, 0);
   }
 
 }
 
-int quickSort () {
+// part
+int particionaQS(int *arr, int menor, int maior){
+  int pivo = arr[maior];
+  int aux = menor - 1;
+  for(int i = arr[menor]; i <= maior - 1; i++){
+    if(arr[i] < pivo){
+      aux++;
+      int valorTemp = arr[aux];
+      arr[aux] = arr[i];
+      arr[i] = valorTemp;
+    }
+  }
+  int valorTemp = arr[aux];
+  arr[aux] = arr[i];
+  arr[i] = valorTemp;
+}
+int quickSort (int *arr, int menor, int maior {
 
+    
 }
 
-int preencherVetor ( int tipoPreenchimento ) {
+tor ( int tipoPreenchimento ) {
 
 }
 
 int main () {
-  int POTENCIA = 3;
-  int EXPONENTE_MENOR = 8;
-  int EXPONENTE_MAIOR = 20;
-
-  int tamanhoInicial = pow;
-  int *vetor = (int *)malloc(tamanho * sizeof(int));
-
-  for (int i = 0; i < tamanho; i++) {
-      vetor[i] = i;
-  }
-
   while(true) {  
     int tipoPreenchimento = 0; 
+    int tipoOrdenacao = 0; 
     
     while(tipoPreenchimento < 1 || tipoPreenchimento > 3) {
       puts("De que maneira o vetor estará preenchido:");
@@ -140,24 +162,31 @@ int main () {
       }
     }
 
+    while(tipoOrdenacao < 1 || tipoOrdenacao > 5) {
+      puts("De que maneira o vetor estará preenchido:");
+      puts("1. Insertion Sort");
+      puts("2. Selection Sort");
+      puts("3. Merge Sort");
+      puts("4. Heap Sort");
+      puts("5. Quick Sort");
+      scanf("%d", &tipoOrdenacao);
+      
+      if(tipoOrdenacao < 1 || tipoOrdenacao > 5) {
+          puts("Escolha uma opção válida!");
+      }
+    }
+
+    int expoenteAtual = EXPONENTE_MENOR;
+
+    while(expoenteAtual <= EXPONENTE_MAIOR) {
+      long long int tamanho = pow(POTENCIA, expoenteAtual);
+    
+      int *vetor = (int *)malloc(tamanho * sizeof(int));
+      for (int i = 0; i < tamanho; i++) {
+        vetor[i] = i;
+      }
+      ordenarVetor(vetor, tipoPreenchimento, tipoOrdenacao, tamanho);
+      expoenteAtual++;
+    }
   }
-
-  // 1 - Preencher vetor 
-    // 1.1 - Aleatorio
-    // 1.2 - Crescente
-    // 1.3 - Decrescente
-
-    // apos escolher qual o tipo de preenchimento, salva isso numa variavel (pode ser um enum ou so um int mesmo)
-
-  // 2 - Ordenar Vetor
-    // 2.1 - Insertion Sort
-    // 2.2 - Selection Sort
-    // 2.3 - Merge Sort
-    // 2.4 - Heap Sort
-    // 2.5 - Quick Sort
-
-  // 3 - Mostrar Vetor
-
-  // 4 - Mudar tamanho do vetor
-
 }
