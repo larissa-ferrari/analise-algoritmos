@@ -30,7 +30,7 @@ void preencheVetor(int* vetor, long long int tamanho, int tipoPreenchimento) {
   if (tipoPreenchimento == 1) {
     // Preencher o vetor com números aleatórios
     for (long long int i = 0; i < tamanho; i++) {
-      vetor[i] = rand();
+      vetor[i] = rand() % tamanho;
     }
   } else if (tipoPreenchimento == 3) {
     // Preencher o vetor com números decrescentes
@@ -41,21 +41,20 @@ void preencheVetor(int* vetor, long long int tamanho, int tipoPreenchimento) {
 }
 
 void printaVetor(int* arr, int n) {
-    puts("Ordenacao executada, vetor:\n");
     long long int i;
     
-    for (i = 0; i < 20; i++) {
+    for (i = 0; i < 6; i++) {
         printf("%d ", arr[i]);
     }
     printf(" ... ");
-    for (i = (n / 2) - 10; i < (n / 2) + 10; i++) {
+    for (i = (n / 2) - 3; i < (n / 2) + 3; i++) {
         printf("%d ", arr[i]);
     }
     printf(" ... ");    
-    for (int i = n - 20; i < n; i++) {
+    for (int i = n - 6; i < n; i++) {
         printf("%d ", arr[i]);
     }
-    printf("\n\n");
+    printf("\n");
 }
 
 void ordenacaoEGravacao(char *nomeOrdenacao, void (*funcaoOrdenacao)(int *, long long int), int tipoPreenchimento, long long int tamanho, int* vetor) {
@@ -76,15 +75,19 @@ void ordenacaoEGravacao(char *nomeOrdenacao, void (*funcaoOrdenacao)(int *, long
     for(i = 0; i < QTD_EXECUCOES; i++) {           
       preencheVetor(vetor, tamanho, tipoPreenchimento);      
 
-      struct timeval inicio, fim;        
+      struct timeval inicio, fim; 
+      
+      puts("\nVetor antes e depois:");     
+      printaVetor(vetor, tamanho);
       gettimeofday(&inicio, NULL);
       funcaoOrdenacao(vetor, tamanho);
       gettimeofday(&fim, NULL);
+      printaVetor(vetor, tamanho);
+
       
       tempoGasto = (fim.tv_sec - inicio.tv_sec) + (fim.tv_usec - inicio.tv_usec) / 1000000.0;
       fprintf(arquivo, "%lld;%lld;%lf\n", comparacoes, trocas, tempoGasto);
 
-      printaVetor(vetor, tamanho);
 
       mediaTrocas += trocas;
       mediaComparacoes += comparacoes;
@@ -106,12 +109,13 @@ void insertionSort (int *arr, long long int n) {
   for (i = 1; i < n; i++){
     chave = arr[i];
     j = i - 1;
+
+    while( j >= 0 && arr[j] > chave) {
+      arr[j + 1] = arr[j];
+      j = j - 1;
+    }
+    arr[j + 1] = chave;
   }
-  while( j >= 0 && arr[j] > chave) {
-    arr[j + 1] = arr[j];
-    j = j - 1;
-  }
-  arr[j + 1] = chave;
 }
 
 // ---SELECTION SORT---
@@ -311,6 +315,7 @@ int main () {
       }
       ordenarVetor(vetor, tipoPreenchimento, tipoOrdenacao, tamanho);
       expoenteAtual++;
+      free(vetor);
     }
   }
 }
