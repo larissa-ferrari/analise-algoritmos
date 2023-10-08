@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdmath.h>
+
 #define POTENCIA 3
 #define EXPONENTE_MENOR 8
 #define EXPONENTE_MAIOR 8
@@ -60,6 +61,8 @@ int ordenarVetor (int *vetor, int tipoPreenchimento, int tipoOrdenacao, long lon
   }
 }
 
+
+// ---INSERTION SORT---
 void insertionSort (int *arr, int n) {
   int i, chave, j;
   for (i = 1; i < n; i++){
@@ -73,15 +76,69 @@ void insertionSort (int *arr, int n) {
   arr[j + 1] = chave;
 }
 
-int selectionSort () {
+// ---SELECTION SORT---
+void selectionSort(int *arr, int n) {
+    int i, j, minIndex, aux;
+    
+    for (i = 0; i < n - 1; i++) {
+        minIndex = i;
+        for (j = i + 1; j < n; j++) {
+            if (arr[j] < arr[minIndex]) {
+                minIndex = j;
+            }
+        }
 
-
+        aux = arr[i];
+        arr[i] = arr[minIndex];
+        arr[minIndex] = aux;
+    }
 }
 
-int mergeSort () {
+// ---MERGE SORT---
+void merge(int *arr, int comeco, int meio, int fim) {
+    int com1 = comeco, com2 = meio+1, comAux = 0, tam = fim-comeco+1;
+    int *arrAux;
+    arrAux = (int*)malloc(tam * sizeof(int));
 
+    while(com1 <= meio && com2 <= fim){
+        if(arr[com1] < arr[com2]) {
+            arrAux[comAux] = arr[com1];
+            com1++;
+        } else {
+            arrAux[comAux] = arr[com2];
+            com2++;
+        }
+        comAux++;
+    }
+
+    while(com1 <= meio){  
+        arrAux[comAux] = arr[com1];
+        comAux++;
+        com1++;
+    }
+
+    while(com2 <= fim) {   
+        arrAux[comAux] = arr[com2];
+        comAux++;
+        com2++;
+    }
+
+    for(comAux = comeco; comAux <= fim; comAux++){  
+        arr[comAux] = arrAux[comAux-comeco];
+    }
+    
+    free(arrAux);
 }
 
+void mergeSort(int *arr, int comeco, int fim){
+    if (comeco < fim) {
+        int meio = (fim+comeco)/2;
+
+        mergeSort(arr, comeco, meio);
+        mergeSort(arr, meio+1, fim);
+        merge(arr, comeco, meio, fim);
+    }
+}
 
 // arruma o heap, mantendo os filhos menores que o pai;
 void heap(int *arr, int x, int i){
@@ -111,7 +168,7 @@ int heapSort (int *arr, int x) {
     heap(arr, n, i);
   }
   for(int j = n-1; j > 0 j--){
-    int valorTemp = arr[0];
+    int valorTemp = arr[j];
     arr[0] = arr[j];
     arr[j] = Valortemp;
 
@@ -120,7 +177,7 @@ int heapSort (int *arr, int x) {
 
 }
 
-// particiona
+// part
 int particionaQS(int *arr, int menor, int maior){
   int pivo = arr[maior];
   int aux = menor - 1;
@@ -132,19 +189,13 @@ int particionaQS(int *arr, int menor, int maior){
       arr[i] = valorTemp;
     }
   }
-    int valorTemp = arr[aux];
+  int valorTemp = arr[aux];
   arr[aux] = arr[i];
   arr[i] = valorTemp;
-  return (aux+1);
 }
-
-
 int quickSort (int *arr, int menor, int maior {
-    if(menor < maior){
-      int pivo = particionaQS(arr, menor, maior);
-      quickSort(arr, menor, pivo-1);
-      quickSort(arr, pivo+1, maior);
-    }
+
+    
 }
 
 tor ( int tipoPreenchimento ) {
