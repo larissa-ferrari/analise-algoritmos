@@ -1,70 +1,108 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdmath.h>
+#include <string.h>
+#include <math.h>
+#include <sys/time.h>
+#include <stdbool.h>
+#include <time.h>
 
 #define POTENCIA 3
 #define EXPONENTE_MENOR 8
 #define EXPONENTE_MAIOR 8
+#define QTD_EXECUCOES 50
 
-int ordenarVetor (int *vetor, int tipoPreenchimento, int tipoOrdenacao, long long int tamanho) {
-  switch(tipoOrdenacao) {
-    case 1:
-      //  cria um arquivo com o nome do algoritmo, tipo do preenchimento e o tamanho do vetor
+void construirNomeArquivo(char *nome, char *ordenacao, int tipoPreenchimento, long long int tamanho) {
+    char tipoPreenchimentoString[12];
 
-      // LEMBRETE, O NUMERO DE COMPARAÇÕES EH COLOCAR PARA SOMAR ANTES
-      // REPITO, ANTES, DO IF/WHILE/SWITCH ACONTECER
+    if (tipoPreenchimento == 1) {
+      strcpy(tipoPreenchimentoString, "ALEATORIO");
+    } else if (tipoPreenchimento == 2) {
+      strcpy(tipoPreenchimentoString, "CRESCENTE");
+    } else {
+      strcpy(tipoPreenchimentoString, "DECRESCENTE");
+    }
+    sprintf(nome, "%s_%s_%lld", ordenacao, tipoPreenchimentoString, tamanho);
+}
 
+void preencheVetor(int* vetor, long long int tamanho, int tipoPreenchimento) {
+  srand(time(NULL));
 
-      //for de 100 execuções
-        // variavel para o numero de comparações (long long int) começa zerado
-        // variavel para o numero de trocas (long long int) começa zerado
-        // preenche o vetor
-        // inicia o contador
-        insertionSort();
-        // finaliza o contador
-        // salva o tempo de execução no arquivo + uma virgula ou ponto e virgula
-        // salva o numero de comparações no arquivo
-        // salva o numero de trocas no arquivo
-
-      // calcula a media do tempo
-      // salva a media no arquivo
-
-      // calcula a media de comparações
-      // salva a media no arquivo
-
-      // calcula a media de trocas
-      // salva a media no arquivo
-
-      break;
-    case 2:
-      // incializa contador
-      selectionSort();
-      // finaliza contador
-      break;
-    case 3:
-      // incializa contador
-      mergeSort();
-      // finaliza contador
-      break;
-    case 4:
-      // incializa contador
-      heapSort();
-      // finaliza contador
-      break;
-    case 5:
-      // incializa contador
-      quickSort();
-      // finaliza contador
-      break;
-    default:
-      printf("Opcao invalida");
+  if (tipoPreenchimento == 1) {
+    // Preencher o vetor com números aleatórios
+    for (long long int i = 0; i < tamanho; i++) {
+      vetor[i] = rand();
+    }
+  } else if (tipoPreenchimento == 3) {
+    // Preencher o vetor com números decrescentes
+    for (long long int i = 0; i < tamanho; i++) {
+        vetor[i] = tamanho - i - 1;
+    }    
   }
 }
 
+void printaVetor(int* arr, int n) {
+    puts("Ordenacao executada, vetor:\n");
+    long long int i;
+    
+    for (i = 0; i < 20; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf(" ... ");
+    for (i = (n / 2) - 10; i < (n / 2) + 10; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf(" ... ");    
+    for (int i = n - 20; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n\n");
+}
+
+void ordenacaoEGravacao(char *nomeOrdenacao, void (*funcaoOrdenacao)(int *, long long int), int tipoPreenchimento, long long int tamanho, int* vetor) {
+    char nomeArquivo[35];
+    construirNomeArquivo(nomeArquivo, nomeOrdenacao, tipoPreenchimento, tamanho);    
+
+    FILE *arquivo = fopen(nomeArquivo, "w");
+    if (arquivo == NULL) {
+      printf("Erro ao criar o arquivo: %s\n", nomeArquivo);
+      exit(1);
+    }
+
+    long long int comparacoes = 0, mediaComparacoes = 0;
+    long long int trocas = 0, mediaTrocas = 0;
+    double tempoGasto = 0, mediaTempo = 0;
+    int i;
+
+    for(i = 0; i < QTD_EXECUCOES; i++) {           
+      preencheVetor(vetor, tamanho, tipoPreenchimento);      
+
+      struct timeval inicio, fim;        
+      gettimeofday(&inicio, NULL);
+      funcaoOrdenacao(vetor, tamanho);
+      gettimeofday(&fim, NULL);
+      
+      tempoGasto = (fim.tv_sec - inicio.tv_sec) + (fim.tv_usec - inicio.tv_usec) / 1000000.0;
+      fprintf(arquivo, "%lld;%lld;%lf\n", comparacoes, trocas, tempoGasto);
+
+      printaVetor(vetor, tamanho);
+
+      mediaTrocas += trocas;
+      mediaComparacoes += comparacoes;
+      mediaTempo += mediaTempo;
+    }
+    mediaTrocas /= QTD_EXECUCOES;
+    mediaComparacoes /= QTD_EXECUCOES;
+    mediaTempo /= QTD_EXECUCOES;
+
+    fprintf(arquivo, "Médias finais:\n");
+    fprintf(arquivo, "%lld;%lld;%lf\n", comparacoes, trocas, tempoGasto);
+    fclose(arquivo);
+}
 
 // ---INSERTION SORT---
-void insertionSort (int *arr, int n) {
-  int i, chave, j;
+void insertionSort (int *arr, long long int n) {
+  long long int i, j;
+  int chave;
   for (i = 1; i < n; i++){
     chave = arr[i];
     j = i - 1;
@@ -77,26 +115,27 @@ void insertionSort (int *arr, int n) {
 }
 
 // ---SELECTION SORT---
-void selectionSort(int *arr, int n) {
-    int i, j, minIndex, aux;
-    
-    for (i = 0; i < n - 1; i++) {
-        minIndex = i;
-        for (j = i + 1; j < n; j++) {
-            if (arr[j] < arr[minIndex]) {
-                minIndex = j;
-            }
-        }
-
-        aux = arr[i];
-        arr[i] = arr[minIndex];
-        arr[minIndex] = aux;
+void selectionSort(int *arr, long long int n) {
+  long long int i, j, minIndex;
+  int aux;
+  
+  for (i = 0; i < n - 1; i++) {
+    minIndex = i;
+    for (j = i + 1; j < n; j++) {
+      if (arr[j] < arr[minIndex]) {
+        minIndex = j;
+      }
     }
+
+    aux = arr[i];
+    arr[i] = arr[minIndex];
+    arr[minIndex] = aux;
+  }
 }
 
 // ---MERGE SORT---
-void merge(int *arr, int comeco, int meio, int fim) {
-    int com1 = comeco, com2 = meio+1, comAux = 0, tam = fim-comeco+1;
+void merge(int *arr, long long int comeco, long long int meio, long long int fim) {
+    long long int com1 = comeco, com2 = meio+1, comAux = 0, tam = fim-comeco+1;
     int *arrAux;
     arrAux = (int*)malloc(tam * sizeof(int));
 
@@ -130,58 +169,59 @@ void merge(int *arr, int comeco, int meio, int fim) {
     free(arrAux);
 }
 
-void mergeSort(int *arr, int comeco, int fim){
-    if (comeco < fim) {
-        int meio = (fim+comeco)/2;
+void mergeSortAux(int *arr, long long int comeco, long long int fim){
+  if (comeco < fim) {
+    long long int meio = (fim+comeco)/2;
 
-        mergeSort(arr, comeco, meio);
-        mergeSort(arr, meio+1, fim);
-        merge(arr, comeco, meio, fim);
-    }
+    mergeSortAux(arr, comeco, meio);
+    mergeSortAux(arr, meio+1, fim);
+    merge(arr, comeco, meio, fim);
+  }
 }
 
-// arruma o heap, mantendo os filhos menores que o pai;
-void heap(int *arr, int x, int i){
+void mergeSort(int *arr, long long int n){
+  mergeSortAux(arr, 0, n-1);
+}
 
-  int maior = i;
-  int esq = (2*i)+1;
-  int dir = (2*i)+1;
+// ---HEAP SORT---
+void heap(int *arr, long long int x, long long int i) {
+  long long int maior = i;
+  long long int esq = (2 * i) + 1;
+  long long int dir = (2 * i) + 2;
 
-  if(esq < x && arr[esq] > arr[maior]){
+  if (esq < x && arr[esq] > arr[maior]) {
     maior = esq;
   }
-  if(dir < x && arr[dir] > arr[maior]){
+  if (dir < x && arr[dir] > arr[maior]) {
     maior = dir;
   }
-  if ( maior != i){
+  if (maior != i) {
     int valorTemp = arr[i];
     arr[i] = arr[maior];
     arr[maior] = valorTemp;
-    heapSort(arr, x, maior);
+    heap(arr, x, maior);
   }
-
 }
 
-// chama a função heap em si;
-int heapSort (int *arr, int x) {
-  for(int i = n/2 - 1; i >= 0; i--){
+void heapSort(int *arr, long long int n) {
+  long long int i, j;
+  for (i = n / 2 - 1; i >= 0; i--) {
     heap(arr, n, i);
   }
-  for(int j = n-1; j > 0 j--){
-    int valorTemp = arr[j];
+  for (j = n - 1; j > 0; j--) {
+    int valorTemp = arr[0];
     arr[0] = arr[j];
-    arr[j] = Valortemp;
+    arr[j] = valorTemp;
 
     heap(arr, j, 0);
   }
-
 }
 
-// part
-int particionaQS(int *arr, int menor, int maior){
+// ---QUICK SORT---
+long long int particionaQS(int *arr, long long int menor, long long int maior){
   int pivo = arr[maior];
-  int aux = menor - 1;
-  for(int i = arr[menor]; i <= maior - 1; i++){
+  long long int aux = menor - 1, i;
+  for(i = menor; i <= maior - 1; i++){
     if(arr[i] < pivo){
       aux++;
       int valorTemp = arr[aux];
@@ -189,17 +229,44 @@ int particionaQS(int *arr, int menor, int maior){
       arr[i] = valorTemp;
     }
   }
-  int valorTemp = arr[aux];
-  arr[aux] = arr[i];
-  arr[i] = valorTemp;
-}
-int quickSort (int *arr, int menor, int maior {
-
-    
+  int valorTemp = arr[aux + 1];
+  arr[aux + 1] = arr[maior];
+  arr[maior] = valorTemp;
+  return (aux + 1);
 }
 
-tor ( int tipoPreenchimento ) {
+void quickSortAux (int *arr, long long int menor, long long int maior) {
+  if(menor < maior){
+    long long int pivo = particionaQS(arr, menor, maior);
+    quickSortAux(arr, menor, pivo-1);
+    quickSortAux(arr, pivo+1, maior);
+  }
+}
 
+void quickSort (int *arr, long long int n) {
+  quickSortAux(arr, 0, n-1);
+}
+
+void ordenarVetor (int *vetor, int tipoPreenchimento, int tipoOrdenacao, long long int tamanho) {
+  switch(tipoOrdenacao) {
+    case 1:
+      ordenacaoEGravacao("INSERTION", insertionSort, tipoPreenchimento, tamanho, vetor);
+      break;
+    case 2:
+      ordenacaoEGravacao("SELECTION", selectionSort, tipoPreenchimento, tamanho, vetor);
+      break;
+    case 3:
+      ordenacaoEGravacao("MERGE", mergeSort, tipoPreenchimento, tamanho, vetor);
+      break;
+    case 4:
+      ordenacaoEGravacao("HEAP", heapSort, tipoPreenchimento, tamanho, vetor);      
+      break;
+    case 5:
+      ordenacaoEGravacao("QUICK", quickSort, tipoPreenchimento, tamanho, vetor);
+      break;
+    default:
+      printf("Opcao invalida");
+  }
 }
 
 int main () {
@@ -208,7 +275,7 @@ int main () {
     int tipoOrdenacao = 0; 
     
     while(tipoPreenchimento < 1 || tipoPreenchimento > 3) {
-      puts("De que maneira o vetor estará preenchido:");
+      puts("Selecione a forma o vetor estará preenchido:");
       puts("1. Aleatorio");
       puts("2. Crescente");
       puts("3. Decrescente");
@@ -220,7 +287,7 @@ int main () {
     }
 
     while(tipoOrdenacao < 1 || tipoOrdenacao > 5) {
-      puts("De que maneira o vetor estará preenchido:");
+      puts("\nSelecione qual tipo de ordenação será usado:");
       puts("1. Insertion Sort");
       puts("2. Selection Sort");
       puts("3. Merge Sort");
