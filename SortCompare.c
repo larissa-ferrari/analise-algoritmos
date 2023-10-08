@@ -8,7 +8,7 @@
 
 #define POTENCIA 3
 #define EXPONENTE_MENOR 8
-#define EXPONENTE_MAIOR 8
+#define EXPONENTE_MAIOR 17
 #define QTD_EXECUCOES 50
 
 void construirNomeArquivo(char *nome, char *ordenacao, int tipoPreenchimento, long long int tamanho) {
@@ -25,8 +25,6 @@ void construirNomeArquivo(char *nome, char *ordenacao, int tipoPreenchimento, lo
 }
 
 void preencheVetor(int* vetor, long long int tamanho, int tipoPreenchimento) {
-  srand(time(NULL));
-
   if (tipoPreenchimento == 1) {
     // Preencher o vetor com números aleatórios
     for (long long int i = 0; i < tamanho; i++) {
@@ -57,15 +55,10 @@ void printaVetor(int* arr, int n) {
     printf("\n");
 }
 
-void ordenacaoEGravacao(char *nomeOrdenacao, void (*funcaoOrdenacao)(int *, long long int), int tipoPreenchimento, long long int tamanho, int* vetor) {
+void ordenacaoEGravacao(char *nomeOrdenacao, void (*funcaoOrdenacao)(int *, long long int, long long int *, long long int *), int tipoPreenchimento, long long int tamanho, int* vetor) {
+    FILE *arquivo;
     char nomeArquivo[35];
-    construirNomeArquivo(nomeArquivo, nomeOrdenacao, tipoPreenchimento, tamanho);    
-
-    FILE *arquivo = fopen(nomeArquivo, "w");
-    if (arquivo == NULL) {
-      printf("Erro ao criar o arquivo: %s\n", nomeArquivo);
-      exit(1);
-    }
+    construirNomeArquivo(nomeArquivo, nomeOrdenacao, tipoPreenchimento, tamanho);        
 
     long long int comparacoes = 0, mediaComparacoes = 0;
     long long int trocas = 0, mediaTrocas = 0;
@@ -73,64 +66,76 @@ void ordenacaoEGravacao(char *nomeOrdenacao, void (*funcaoOrdenacao)(int *, long
     int i;
 
     for(i = 0; i < QTD_EXECUCOES; i++) {           
+      trocas = 0;
+      comparacoes = 0;
       preencheVetor(vetor, tamanho, tipoPreenchimento);      
 
       struct timeval inicio, fim; 
       
-      puts("\nVetor antes e depois:");     
-      printaVetor(vetor, tamanho);
+      // puts("\nVetor antes e depois:");     
+      // printaVetor(vetor, tamanho);
       gettimeofday(&inicio, NULL);
-      funcaoOrdenacao(vetor, tamanho);
+      funcaoOrdenacao(vetor, tamanho, &trocas, &comparacoes);
       gettimeofday(&fim, NULL);
-      printaVetor(vetor, tamanho);
-
+      // printaVetor(vetor, tamanho);
       
       tempoGasto = (fim.tv_sec - inicio.tv_sec) + (fim.tv_usec - inicio.tv_usec) / 1000000.0;
-      fprintf(arquivo, "%lld;%lld;%lf\n", comparacoes, trocas, tempoGasto);
-
+      
+      arquivo = fopen(nomeArquivo, "a");      
+      fprintf(arquivo, "%lld;%lld;%lf\n", trocas, comparacoes, tempoGasto);
+      fclose(arquivo);
 
       mediaTrocas += trocas;
       mediaComparacoes += comparacoes;
-      mediaTempo += mediaTempo;
+      mediaTempo += tempoGasto;
     }
     mediaTrocas /= QTD_EXECUCOES;
     mediaComparacoes /= QTD_EXECUCOES;
     mediaTempo /= QTD_EXECUCOES;
 
+    arquivo = fopen(nomeArquivo, "a");    
     fprintf(arquivo, "Médias finais:\n");
-    fprintf(arquivo, "%lld;%lld;%lf\n", comparacoes, trocas, tempoGasto);
+    fprintf(arquivo, "%lld;%lld;%lf\n", mediaTrocas, mediaComparacoes, mediaTempo);
     fclose(arquivo);
+
+    printf("Ordenação com %lld valores concluída.\n\n", tamanho);     
 }
 
 // ---INSERTION SORT---
-void insertionSort (int *arr, long long int n) {
+void insertionSort (int *arr, long long int n, long long int *trocas, long long int *comparacoes) {
   long long int i, j;
   int chave;
   for (i = 1; i < n; i++){
     chave = arr[i];
     j = i - 1;
 
-    while( j >= 0 && arr[j] > chave) {
+    while(j >= 0 && arr[j] > chave) {
+      (*comparacoes)++;
       arr[j + 1] = arr[j];
       j = j - 1;
+      (*trocas)++;
     }
+    (*comparacoes)++;
+
     arr[j + 1] = chave;
   }
 }
 
 // ---SELECTION SORT---
-void selectionSort(int *arr, long long int n) {
+void selectionSort(int *arr, long long int n, long long int *trocas, long long int *comparacoes) {
   long long int i, j, minIndex;
   int aux;
   
   for (i = 0; i < n - 1; i++) {
     minIndex = i;
     for (j = i + 1; j < n; j++) {
+      (*comparacoes)++;
       if (arr[j] < arr[minIndex]) {
         minIndex = j;
       }
     }
 
+    (*trocas)++;
     aux = arr[i];
     arr[i] = arr[minIndex];
     arr[minIndex] = aux;
@@ -138,12 +143,13 @@ void selectionSort(int *arr, long long int n) {
 }
 
 // ---MERGE SORT---
-void merge(int *arr, long long int comeco, long long int meio, long long int fim) {
+void merge(int *arr, long long int comeco, long long int meio, long long int fim, long long int *trocas, long long int *comparacoes) {
     long long int com1 = comeco, com2 = meio+1, comAux = 0, tam = fim-comeco+1;
     int *arrAux;
     arrAux = (int*)malloc(tam * sizeof(int));
 
     while(com1 <= meio && com2 <= fim){
+        (*comparacoes)++;
         if(arr[com1] < arr[com2]) {
             arrAux[comAux] = arr[com1];
             com1++;
@@ -154,13 +160,13 @@ void merge(int *arr, long long int comeco, long long int meio, long long int fim
         comAux++;
     }
 
-    while(com1 <= meio){  
+    while(com1 <= meio){   
         arrAux[comAux] = arr[com1];
         comAux++;
         com1++;
     }
 
-    while(com2 <= fim) {   
+    while(com2 <= fim) {  
         arrAux[comAux] = arr[com2];
         comAux++;
         com2++;
@@ -168,27 +174,27 @@ void merge(int *arr, long long int comeco, long long int meio, long long int fim
 
     for(comAux = comeco; comAux <= fim; comAux++){  
         arr[comAux] = arrAux[comAux-comeco];
-    }
-    
+        (*trocas)++;
+    }    
     free(arrAux);
 }
 
-void mergeSortAux(int *arr, long long int comeco, long long int fim){
+void mergeSortAux(int *arr, long long int comeco, long long int fim, long long int *trocas, long long int *comparacoes) {
   if (comeco < fim) {
     long long int meio = (fim+comeco)/2;
 
-    mergeSortAux(arr, comeco, meio);
-    mergeSortAux(arr, meio+1, fim);
-    merge(arr, comeco, meio, fim);
+    mergeSortAux(arr, comeco, meio, trocas, comparacoes);
+    mergeSortAux(arr, meio+1, fim, trocas, comparacoes);
+    merge(arr, comeco, meio, fim, trocas, comparacoes);
   }
 }
 
-void mergeSort(int *arr, long long int n){
-  mergeSortAux(arr, 0, n-1);
+void mergeSort(int *arr, long long int n, long long int *trocas, long long int *comparacoes) {
+  mergeSortAux(arr, 0, n-1, trocas, comparacoes);
 }
 
 // ---HEAP SORT---
-void heap(int *arr, long long int x, long long int i) {
+void heap(int *arr, long long int x, long long int i, long long int *trocas, long long int *comparacoes) {
   long long int maior = i;
   long long int esq = (2 * i) + 1;
   long long int dir = (2 * i) + 2;
@@ -199,56 +205,62 @@ void heap(int *arr, long long int x, long long int i) {
   if (dir < x && arr[dir] > arr[maior]) {
     maior = dir;
   }
+  (*comparacoes) += 2;
   if (maior != i) {
+    (*trocas)++;
     int valorTemp = arr[i];
     arr[i] = arr[maior];
     arr[maior] = valorTemp;
-    heap(arr, x, maior);
+    heap(arr, x, maior, trocas, comparacoes);
   }
 }
 
-void heapSort(int *arr, long long int n) {
-  long long int i, j;
+void heapSort(int *arr, long long int n, long long int *trocas, long long int *comparacoes) {
+  long long int i;
   for (i = n / 2 - 1; i >= 0; i--) {
-    heap(arr, n, i);
+    heap(arr, n, i, trocas, comparacoes);
   }
-  for (j = n - 1; j > 0; j--) {
+  for (i = n - 1; i > 0; i--) {
+    (*trocas)++;
     int valorTemp = arr[0];
-    arr[0] = arr[j];
-    arr[j] = valorTemp;
+    arr[0] = arr[i];
+    arr[i] = valorTemp;
 
-    heap(arr, j, 0);
+    heap(arr, i, 0, trocas, comparacoes);
   }
 }
 
 // ---QUICK SORT---
-long long int particionaQS(int *arr, long long int menor, long long int maior){
+long long int particionaQS(int *arr, long long int menor, long long int maior, long long int *trocas, long long int *comparacoes) {
   int pivo = arr[maior];
   long long int aux = menor - 1, i;
   for(i = menor; i <= maior - 1; i++){
+    (*comparacoes)++;
     if(arr[i] < pivo){
       aux++;
+      (*trocas)++;
       int valorTemp = arr[aux];
       arr[aux] = arr[i];
       arr[i] = valorTemp;
     }
   }
+  (*trocas)++;
   int valorTemp = arr[aux + 1];
   arr[aux + 1] = arr[maior];
   arr[maior] = valorTemp;
   return (aux + 1);
 }
 
-void quickSortAux (int *arr, long long int menor, long long int maior) {
+void quickSortAux (int *arr, long long int menor, long long int maior, long long int *trocas, long long int *comparacoes) {
   if(menor < maior){
-    long long int pivo = particionaQS(arr, menor, maior);
-    quickSortAux(arr, menor, pivo-1);
-    quickSortAux(arr, pivo+1, maior);
+    long long int pivo = particionaQS(arr, menor, maior, trocas, comparacoes);
+    quickSortAux(arr, menor, pivo-1, trocas, comparacoes);
+    quickSortAux(arr, pivo+1, maior, trocas, comparacoes);
   }
 }
 
-void quickSort (int *arr, long long int n) {
-  quickSortAux(arr, 0, n-1);
+void quickSort (int *arr, long long int n, long long int *trocas, long long int *comparacoes) {
+  quickSortAux(arr, 0, n-1, trocas, comparacoes);
 }
 
 void ordenarVetor (int *vetor, int tipoPreenchimento, int tipoOrdenacao, long long int tamanho) {
@@ -274,6 +286,7 @@ void ordenarVetor (int *vetor, int tipoPreenchimento, int tipoOrdenacao, long lo
 }
 
 int main () {
+  srand(time(NULL));
   while(true) {  
     int tipoPreenchimento = 0; 
     int tipoOrdenacao = 0; 
@@ -303,9 +316,9 @@ int main () {
           puts("Escolha uma opção válida!");
       }
     }
-
+   int m;
+   for(m = 1; m < 4; m++) {
     int expoenteAtual = EXPONENTE_MENOR;
-
     while(expoenteAtual <= EXPONENTE_MAIOR) {
       long long int tamanho = pow(POTENCIA, expoenteAtual);
     
@@ -313,9 +326,10 @@ int main () {
       for (int i = 0; i < tamanho; i++) {
         vetor[i] = i;
       }
-      ordenarVetor(vetor, tipoPreenchimento, tipoOrdenacao, tamanho);
+      ordenarVetor(vetor, m, tipoOrdenacao, tamanho);
       expoenteAtual++;
       free(vetor);
     }
+   }
   }
 }
